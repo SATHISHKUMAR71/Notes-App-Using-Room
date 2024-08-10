@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.samplenotesapplication.R
+import com.example.samplenotesapplication.model.Note
 import com.example.samplenotesapplication.recyclerview.NotesAdapter
 import com.example.samplenotesapplication.model.NotesDatabase
 import com.example.samplenotesapplication.repository.NoteRepository
@@ -44,7 +45,6 @@ class HomeFragment : Fragment() {
         val rv = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val viewModelFactory = NotesViewModelFactory(requireActivity().application, NoteRepository(NotesDatabase.getNoteDatabase(requireContext())))
         val viewModel = ViewModelProvider(this,viewModelFactory)[NotesAppViewModel::class.java]
-
 //        Floating Action Button On Click Listener
         fab = view.findViewById(R.id.addButton)
         fab.apply {
