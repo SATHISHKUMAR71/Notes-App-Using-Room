@@ -100,12 +100,12 @@ class HomeFragment : Fragment() {
 
 //        Read Notes Observer
 
-            viewModel.getAllNotes().observe(viewLifecycleOwner, Observer {
-                if(!searchActionPerformed) {
-                    println("Get All Notes Coppy calle")
-                    adapter.setNotes(it)
-                }
-            })
+//            viewModel.getAllNotes().observe(viewLifecycleOwner, Observer {
+//                if(!searchActionPerformed) {
+//                    println("Get All Notes Coppy calle")
+//                    adapter.setNotes(it)
+//                }
+//            })
 
 
 //        DELETE CONFIRMATION DIALOG OBSERVER
@@ -179,11 +179,13 @@ class HomeFragment : Fragment() {
         // Clear focus and hide keyboard if necessary
         val searchView = (appbarFragment.view?.findViewById<SearchView>(R.id.searchView))
         if(parentFragmentManager.findFragmentByTag("longFragmentEnabled")?.isVisible == true){
+            println("8282 Back Pressed")
             parentFragmentManager.popBackStack()
         }
 
 
         else if ((searchView?.hasFocus() == true)||(searchActionPerformed)) {
+            println("QUERY HAS BEEN CHANGED")
             searchView?.setQuery("",false)
             query = ""
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

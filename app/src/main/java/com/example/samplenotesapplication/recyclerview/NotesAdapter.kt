@@ -77,13 +77,13 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
 
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
         holder.itemView.apply {
-            selectedItemPos = holder.absoluteAdapterPosition
+            selectedItemPos = holder.bindingAdapterPosition
             date = findViewById(R.id.dateNote)
             title = findViewById(R.id.titleNote)
             content = findViewById(R.id.contentNote)
-            if(notesList[position].isHighlighted && query.isNotEmpty()){
-                val titleContent = notesList[position].title
-                val bodyContent = notesList[position].content
+            if(notesList[selectedItemPos].isHighlighted && query.isNotEmpty()){
+                val titleContent = notesList[selectedItemPos].title
+                val bodyContent = notesList[selectedItemPos].content
                 val spannableTitle = SpannableString(titleContent)
                 val spannableContent = SpannableString(bodyContent)
                 var startContentIndex = bodyContent.indexOf(query, ignoreCase = true)
@@ -362,17 +362,15 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     fun setNotesQuery(notes:MutableList<Note>,query1: String){
         query = query1
         if(query1.isNotEmpty()){
-            println("In IF")
 ////            notifyDataSetChanged()
             val list = notes.map {
                 it.copy(isHighlighted = true)
             }.toMutableList()
-            notifyItemRangeChanged(0,list.size)
+            notifyItemRangeChanged(0,list.size+1)
             setNotes(list)
         }
         else{
             query = ""
-            println("In ELSE")
             val list = notes.map {
                 it.copy(isHighlighted = false)
             }.toMutableList()

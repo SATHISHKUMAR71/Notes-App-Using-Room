@@ -34,10 +34,10 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
 
         val view =  inflater.inflate(R.layout.fragment_appbar, container, false)
         search = view.findViewById(R.id.searchView)
-        if(NotesAppViewModel.query.value?.isEmpty()==false){
-            println("ON QUERY CHANGED isEmpty")
-            search.setQuery(NotesAppViewModel.query.value?:"",true)
-        }
+//        if(NotesAppViewModel.query.value?.isEmpty()==false){
+//            println("ON QUERY CHANGED isEmpty")
+//            search.setQuery(NotesAppViewModel.query.value?:"",true)
+//        }
         search.isFocusable = false
         search.isFocusableInTouchMode = false
 
