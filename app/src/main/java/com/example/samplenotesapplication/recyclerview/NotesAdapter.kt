@@ -77,7 +77,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
 
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
         holder.itemView.apply {
-            selectedItemPos = holder.adapterPosition
+            selectedItemPos = holder.absoluteAdapterPosition
             date = findViewById(R.id.dateNote)
             title = findViewById(R.id.titleNote)
             content = findViewById(R.id.contentNote)
@@ -121,6 +121,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     // Find the next occurrence of the query text
                     startContentIndex = bodyContent.indexOf(query, endContentIndex, ignoreCase = true)
                 }
+
                 title.text = spannableTitle
                 content.text = spannableContent
 //                notifyDataSetChanged()
@@ -238,13 +239,13 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             }
 
 //            extend and shrink item views
-            if(!((title.text == "") && (content.text==""))){
-                if (title.text == "") {
+            if(!((title.text.isEmpty()) && (content.text.isEmpty()))){
+                if (title.text.isEmpty()) {
                     title.visibility = View.GONE
                 } else {
                     title.visibility = View.VISIBLE
                 }
-                if (content.text == "") {
+                if (content.text.isEmpty()) {
                     content.visibility = View.GONE
                 } else {
                     content.visibility = View.VISIBLE
@@ -353,7 +354,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     }
 
     fun setNotes(notes:MutableList<Note>){
-
         val diffUtil = NotesDiffUtil(notesList,notes)
         val diffResults = DiffUtil.calculateDiff(diffUtil)
         notesList = notes
@@ -361,11 +361,9 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     }
 
     fun setNotesQuery(notes:MutableList<Note>,query1: String){
-
         query = query1
-
-        if(query1 ==""){
-
+        if(query1.isNotEmpty()){
+            println("In IF")
 //            notifyDataSetChanged()
             val list = notes.map {
                 it.copy(isHighlighted = true)
@@ -373,9 +371,9 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             setNotes(list)
         }
         else{
-
+            println("In ELSE")
             val list = notes.map {
-                it.copy(isHighlighted = true)
+                it.copy(isHighlighted = false)
             }.toMutableList()
             setNotes(list)
         }
@@ -443,8 +441,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         }
         pinnedList = mutableListOf(2)
         isLongPressed = 0
-        setNotes(newNotesList)
-
     }
 
     fun pinSelectedItems() {
@@ -469,7 +465,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     }
 
     private fun makeClickable(){
-
         val list = notesList.map { note ->
             note.copy(isCheckable = true)
         }.toMutableList()

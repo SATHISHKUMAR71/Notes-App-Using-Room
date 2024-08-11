@@ -73,11 +73,12 @@ class HomeFragment : Fragment() {
 
 
         NotesAppViewModel.query.observe(viewLifecycleOwner, Observer {
-            if(it == ""){
+            if(it.isEmpty()){
                 viewModel.getAllNotes().observe(viewLifecycleOwner, Observer { getAll->
-                    println("GetAll Notes Observer Called 1")
+                    println("Get ALl Notes Observer called")
                     adapter.setNotes(getAll)
                 })
+
             }
             else{
                 searchActionPerformed = true
@@ -85,16 +86,20 @@ class HomeFragment : Fragment() {
                     println("GetAll Notes Query Observer Called 1")
                     query = it
                     adapter.setNotesQuery(note,it)
+                    rv.layoutManager?.scrollToPosition(0)
                 })
             }
         })
 
 //        Read Notes Observer
-        if(!searchActionPerformed){
+
             viewModel.getAllNotes().observe(viewLifecycleOwner, Observer {
-                adapter.setNotes(it)
+                if(!searchActionPerformed) {
+                    println("Get All Notes Coppy calle")
+                    adapter.setNotes(it)
+                }
             })
-        }
+
 
 //        DELETE CONFIRMATION DIALOG OBSERVER
         NotesAppViewModel.deleteConfirmation.observe(viewLifecycleOwner, Observer {
