@@ -81,8 +81,8 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             date = findViewById(R.id.dateNote)
             title = findViewById(R.id.titleNote)
             content = findViewById(R.id.contentNote)
+            println("32 In HighLight: ${notesList[position].isHighlighted}")
             if(notesList[position].isHighlighted && query.isNotEmpty()){
-                notesList[position].isHighlighted = false
                 val titleContent = notesList[position].title
                 val bodyContent = notesList[position].content
                 val spannableTitle = SpannableString(titleContent)
