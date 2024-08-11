@@ -32,12 +32,14 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
 
+        println("12345 query value: ${NotesAppViewModel.query.value} ${NotesAppViewModel.query.value?.isEmpty()==false}")
         val view =  inflater.inflate(R.layout.fragment_appbar, container, false)
         search = view.findViewById(R.id.searchView)
-//        if(NotesAppViewModel.query.value?.isEmpty()==false){
-//            println("ON QUERY CHANGED isEmpty")
-//            search.setQuery(NotesAppViewModel.query.value?:"",true)
-//        }
+        if(NotesAppViewModel.query.value?.isEmpty()==false){
+            println("12345 ON QUERY CHANGED isEmpty ${NotesAppViewModel.query.value}")
+            NotesAppViewModel.query.value = NotesAppViewModel.query.value
+            search.setQuery(NotesAppViewModel.query.value?:"",true)
+        }
         search.isFocusable = false
         search.isFocusableInTouchMode = false
 
@@ -45,6 +47,7 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 println("ON QUERY CHANGED Submit")
                 NotesAppViewModel.query.value = query
+                println("12345 submit value: $query")
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(search.windowToken, 0)
                 return true
@@ -52,6 +55,7 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 println("ON QUERY CHANGED Text Change")
                 NotesAppViewModel.query.value = newText
+                println("12345 change value: $newText")
                 return true
             }
         })
@@ -72,15 +76,19 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
     }
     override fun onStop() {
         super.onStop()
+        println("12345 On Stop")
     }
     override fun onStart() {
         super.onStart()
+        println("12345 On Start")
     }
 
     override fun onResume() {
         super.onResume()
+        println("12345 On Resume")
     }
     override fun onPause() {
         super.onPause()
+        println("12345 On Pause")
     }
 }

@@ -84,6 +84,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             if(notesList[selectedItemPos].isHighlighted && query.isNotEmpty()){
                 val titleContent = notesList[selectedItemPos].title
                 val bodyContent = notesList[selectedItemPos].content
+                println("In IF $query $titleContent $bodyContent")
                 val spannableTitle = SpannableString(titleContent)
                 val spannableContent = SpannableString(bodyContent)
                 var startContentIndex = bodyContent.indexOf(query, ignoreCase = true)
@@ -362,6 +363,8 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     fun setNotesQuery(notes:MutableList<Note>,query1: String){
         query = query1
         if(query1.isNotEmpty()){
+            println("In IF $query1")
+            println("In IF $query")
 ////            notifyDataSetChanged()
             val list = notes.map {
                 it.copy(isHighlighted = true)
@@ -371,11 +374,12 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         }
         else{
             query = ""
+            println("In ELSE $query")
             val list = notes.map {
                 it.copy(isHighlighted = false)
             }.toMutableList()
             setNotes(list)
-            notifyItemRangeChanged(0,list.size)
+            notifyItemRangeChanged(0,list.size+1)
         }
 //        notifyDataSetChanged()
     }

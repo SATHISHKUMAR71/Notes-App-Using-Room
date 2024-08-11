@@ -73,8 +73,9 @@ class HomeFragment : Fragment() {
 
 
         NotesAppViewModel.query.observe(viewLifecycleOwner, Observer {
-            if(it.isEmpty()){
-
+            println("12345 $it")
+            query = it
+            if(query.isEmpty()){
                 viewModel.getAllNotes().observe(viewLifecycleOwner, Observer { getAll->
                     println("Get ALl Notes Observer called")
                     if(searchActionPerformed){
@@ -85,13 +86,11 @@ class HomeFragment : Fragment() {
                         adapter.setNotes(getAll)
                     }
                 })
-
             }
             else{
                 searchActionPerformed = true
-                viewModel.getNotesByQuery(it).observe(viewLifecycleOwner, Observer { note ->
-                    println("GetAll Notes Query Observer Called 1")
-                    query = it
+                viewModel.getNotesByQuery(query).observe(viewLifecycleOwner, Observer { note ->
+                    println("GetAll Notes Query Observer Called 1 query $query")
                     adapter.setNotesQuery(note,it)
                     rv.layoutManager?.scrollToPosition(0)
                 })
