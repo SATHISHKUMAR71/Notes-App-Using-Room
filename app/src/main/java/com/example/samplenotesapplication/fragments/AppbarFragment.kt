@@ -20,7 +20,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
-class AppbarFragment(val fab:FloatingActionButton) : Fragment() {
+class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
     private lateinit var search:SearchView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,9 +57,10 @@ class AppbarFragment(val fab:FloatingActionButton) : Fragment() {
         })
         search.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus){
-                fab.visibility = View.GONE
+                fab.hide()
             }
             else{
+
                 fab.show()
             }
         }

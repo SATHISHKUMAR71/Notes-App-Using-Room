@@ -81,7 +81,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             date = findViewById(R.id.dateNote)
             title = findViewById(R.id.titleNote)
             content = findViewById(R.id.contentNote)
-            println("32 In HighLight: ${notesList[position].isHighlighted}")
             if(notesList[position].isHighlighted && query.isNotEmpty()){
                 val titleContent = notesList[position].title
                 val bodyContent = notesList[position].content
@@ -256,11 +255,10 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
 
 //            Long On Click Listener
             setOnLongClickListener {
-                selectedItemPos = holder.adapterPosition
+                selectedItemPos = holder.absoluteAdapterPosition
                 if(isLongPressed==0){
                     makeClickable()
                     firstTimeLongPressed = 1
-
                     isCheckable = true
                     isLongPressed = 1
 
@@ -360,32 +358,38 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         diffResults.dispatchUpdatesTo(this)
     }
 
+
     fun setNotesQuery(notes:MutableList<Note>,query1: String){
         query = query1
         if(query1.isNotEmpty()){
             println("In IF")
-//            notifyDataSetChanged()
+////            notifyDataSetChanged()
             val list = notes.map {
                 it.copy(isHighlighted = true)
             }.toMutableList()
+            notifyItemRangeChanged(0,list.size)
             setNotes(list)
         }
         else{
+            query = ""
             println("In ELSE")
             val list = notes.map {
                 it.copy(isHighlighted = false)
             }.toMutableList()
             setNotes(list)
+            notifyItemRangeChanged(0,list.size)
         }
+//        notifyDataSetChanged()
     }
 
      fun onBackPressed() {
+         println("ON BACK PRESSED")
          firstTimeLongPressed = 0
          isLongPressed = 0
          selectCount = 0
          NotesAppViewModel.selectCount.value = selectCount
         val list = notesList.map {
-            it.copy(isSelected = false)
+            it.copy(isSelected = false, isCheckable = false, isHighlighted = false)
         }.toMutableList()
          isCheckable = false
         setNotes(list)
@@ -447,7 +451,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         var i=0
         val isSelectedNotes = notesList.filter { it.isSelected }
         isSelectedNotes.forEach { note ->
-            val updateNote = note.copy(isPinned = 1, isSelected = false, isCheckable = false)
+            val updateNote = note.copy(isPinned = 1, isSelected = false, isCheckable = false, isHighlighted = false)
             viewModel.updateNote(updateNote)
         }
         isLongPressed = 0
@@ -458,7 +462,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         var i=0
         val isSelectedNotes = notesList.filter { it.isSelected }
         isSelectedNotes.forEach { note ->
-            val updateNote = note.copy(isPinned = 0, isSelected = false, isCheckable = false)
+            val updateNote = note.copy(isPinned = 0, isSelected = false, isCheckable = false, isHighlighted = false)
             viewModel.updateNote(updateNote)
         }
         isLongPressed = 0

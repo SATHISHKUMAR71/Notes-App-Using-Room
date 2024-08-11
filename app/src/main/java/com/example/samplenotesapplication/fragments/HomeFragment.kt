@@ -74,9 +74,16 @@ class HomeFragment : Fragment() {
 
         NotesAppViewModel.query.observe(viewLifecycleOwner, Observer {
             if(it.isEmpty()){
+
                 viewModel.getAllNotes().observe(viewLifecycleOwner, Observer { getAll->
                     println("Get ALl Notes Observer called")
-                    adapter.setNotes(getAll)
+                    if(searchActionPerformed){
+                        adapter.setNotesQuery(getAll,"")
+                        searchActionPerformed = false
+                    }
+                    else{
+                        adapter.setNotes(getAll)
+                    }
                 })
 
             }
@@ -177,8 +184,8 @@ class HomeFragment : Fragment() {
 
 
         else if ((searchView?.hasFocus() == true)||(searchActionPerformed)) {
-
             searchView?.setQuery("",false)
+            query = ""
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(searchView?.windowToken, 0)
             searchView?.clearFocus()
