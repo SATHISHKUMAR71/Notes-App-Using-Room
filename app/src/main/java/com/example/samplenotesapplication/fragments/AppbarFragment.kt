@@ -66,8 +66,7 @@ class AppbarFragment(private val fab:FloatingActionButton,private var viewModel:
                 fab.hide()
             }
             else{
-
-                fab.show()
+//                fab.show()
             }
         }
         return view

@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+
+    <permission android:name="com.example.samplenotesapplication.notescontentprovider.permission.READ_NOTES_APP_PERMISSION"
+        android:protectionLevel="normal"/>
+
+    <permission android:name="com.example.samplenotesapplication.notescontentprovider.permission.WRITE_NOTES_APP_PERMISSION"
+        android:protectionLevel="normal"/>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,7 +21,9 @@
         <provider
             android:authorities="com.example.samplenotesapplication.notescontentprovider"
             android:name=".notescontentprovider.NotesContentProvider"
-            android:exported="true"/>
+            android:exported="true"
+            android:readPermission="com.example.samplenotesapplication.notescontentprovider.permission.READ_NOTES_APP_PERMISSION"
+            android:writePermission="com.example.samplenotesapplication.notescontentprovider.permission.WRITE_NOTES_APP_PERMISSION"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -51,14 +51,15 @@ class HomeFragment : Fragment() {
 
 //        Floating Action Button On Click Listener
         fab = view.findViewById(R.id.addButton)
-        fab.apply {
-            setOnClickListener {
+        if(searchActionPerformed){
+            fab.hide()
+        }
+        fab.setOnClickListener {
                 parentFragmentManager.beginTransaction()
                     .addToBackStack("Add Note")
                     .replace(R.id.fragmentContainerView,AddNote(viewModel))
                     .commit()
             }
-        }
         appbarFragment = AppbarFragment(fab,viewModel)
         if(parentFragmentManager.findFragmentByTag("longFragmentEnabled")?.isVisible != true){
             parentFragmentManager.beginTransaction()
@@ -78,11 +79,12 @@ class HomeFragment : Fragment() {
         notesObserver = Observer { notes ->
             var c = 0
             adapter.setNotesQuery(notes, viewModel.query.value ?: "")
+            rv.scrollToPosition(0)
         }
 
         viewModel.getAllNotes().observe(viewLifecycleOwner) { notes ->
             if (!searchActionPerformed) {
-                println("321 Get All Notes Called")
+                println("321012 Get All Notes Called")
                 adapter.setNotes(notes)
             }
         }
@@ -182,7 +184,6 @@ class HomeFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-
         else if ((searchView?.hasFocus() == true)||(searchActionPerformed)) {
             println("321 QUERY HAS BEEN CHANGED")
             searchView?.setQuery("",false)
@@ -191,6 +192,7 @@ class HomeFragment : Fragment() {
             imm.hideSoftInputFromWindow(searchView?.windowToken, 0)
             searchView?.clearFocus()
             searchActionPerformed = false
+            fab.show()
         }
         else {
             requireActivity().finish()

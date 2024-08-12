@@ -58,7 +58,7 @@ class LongPressedFragment(private var viewModel: NotesAppViewModel) : Fragment()
         toolbar.setOnMenuItemClickListener {
             when(it.itemId){
                 (R.id.selectAllItems)->{
-                    Toast.makeText(context,"Select all Clicked",Toast.LENGTH_SHORT).show()
+
                     viewModel.selectAllItem.value = viewModel.selectAllItem.value != true
                     if(viewModel.selectAllItem.value==true){
                         toolbar.menu.findItem(R.id.selectAllItems).setIcon(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_deselect_24))

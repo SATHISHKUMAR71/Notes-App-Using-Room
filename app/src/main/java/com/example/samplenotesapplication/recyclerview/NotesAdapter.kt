@@ -41,6 +41,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     private var notesList: MutableList<Note> = mutableListOf()
     private var isHighlight = false
     private var query = ""
+    var dateInfo = ""
     private var selectedItemPos = 0
     private var selectCount = 0
     private lateinit var title: TextView
@@ -81,97 +82,15 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             date = findViewById(R.id.dateNote)
             title = findViewById(R.id.titleNote)
             content = findViewById(R.id.contentNote)
-            if(notesList[selectedItemPos].isHighlighted && query.isNotEmpty()){
-                val titleContent = notesList[selectedItemPos].title
-                val bodyContent = notesList[selectedItemPos].content
-//                println("In IF $query $titleContent $bodyContent")
-                val spannableTitle = SpannableString(titleContent)
-                val spannableContent = SpannableString(bodyContent)
-                var startContentIndex = bodyContent.indexOf(query, ignoreCase = true)
-                var startIndex = titleContent.indexOf(query, ignoreCase = true)
-                while (startIndex >= 0) {
-                    val endIndex = startIndex + query.length
 
-                    // Ensure indices are within the bounds of the text length
-                    if (startIndex >= 0 && endIndex <= titleContent.length) {
-                        // Apply a ForegroundColorSpan to highlight the text
-                        spannableTitle.setSpan(
-                            ForegroundColorSpan(Color.argb(255,255,20,20)), // You can choose any color
-                            startIndex,
-                            endIndex,
-                            Spannable.SPAN_INCLUSIVE_INCLUSIVE
-                        )
-                    }
-                    // Find the next occurrence of the query text
-                    startIndex = titleContent.indexOf(query, endIndex, ignoreCase = true)
-                }
-                while (startContentIndex >= 0) {
-                    val endContentIndex = startContentIndex + query.length
-
-                    // Ensure indices are within the bounds of the text length
-                    if (startContentIndex >= 0 && endContentIndex <= bodyContent.length) {
-                        // Apply a ForegroundColorSpan to highlight the text
-                        spannableContent.setSpan(
-                            ForegroundColorSpan(Color.argb(255,255,20,10)), // You can choose any color
-                            startContentIndex,
-                            endContentIndex,
-                            Spannable.SPAN_INCLUSIVE_INCLUSIVE
-                        )
-                    }
-                    // Find the next occurrence of the query text
-                    startContentIndex = bodyContent.indexOf(query, endContentIndex, ignoreCase = true)
-                }
-
-                title.text = spannableTitle
-                content.text = spannableContent
-//                notifyDataSetChanged()
-            }
-            else{
-                title.text = notesList[position].title
-                content.text = notesList[position].content
-//                notifyDataSetChanged()
-            }
+//          Search Operations
+            searchOperation(position)
 
 
 //            Update the Date Code Started
-            var editedDate = notesList[position].createdAt
-            val dateAndTime = editedDate.split(" ")
-            val date1 = dateAndTime[0].split("-")
-            val time = dateAndTime[1].split(":")
-            format = dateAndTime[2]
-            val day = date1[2].toInt()
-            val month = date1[1].toInt()
-            val year = date1[0].toInt()
-            val monthName = Months.MONTHS[month-1]
-            val normalTime = if(time[0].toInt()>12){
-                time[0].toInt() - 12
-            } else {
-                time[0].toInt()
-            }
-            var dateInfo = "$day $monthName ${normalTime}:${time[1]} $format"
-            if((currentMonth == month)&&(currentYear==year)&&(day==currentDay)){
-                editedDate = "Today ${normalTime}:${time[1]} $format"
-            }
-            else if ((currentMonth == month) && (abs(day-currentDay)<7)){
-                editedDate = if(abs(day-currentDay)==1){
-                    "Yesterday ${normalTime}:${time[1]} $format"
-                } else{
-                    "${dateAndTime[3]} ${normalTime}:${time[1]} $format"
-                }
-            }
-            else if(((currentMonth == month)&&(currentYear==year)) || (currentYear==year)){
-                editedDate = "$monthName $day"
-            }
-            else{
-                dateInfo = "$day $monthName, $year ${normalTime}:${time[1]} $format"
-                editedDate = "$monthName $day, $year"
-            }
-            date.text = editedDate
+            updateDate(position)
 
-//            Update the Date Code Finished
 
-//            9 AUG COMMENTED
-//            content.text = notesList[position].content
 
 //            CheckBox Logic Started
             findViewById<CheckBox>(R.id.isChecked).apply {
@@ -204,8 +123,8 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     viewModel.setSelectedNote(notesList[holder.adapterPosition])
                 }
             }
-
 //            CheckBox Logic finished
+
 
 //            Push Pin Visibility
             if(notesList[holder.adapterPosition].isPinned==1){
@@ -352,6 +271,94 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         }
     }
 
+    private fun updateDate(position: Int) {
+        var editedDate = notesList[position].createdAt
+        val dateAndTime = editedDate.split(" ")
+        val date1 = dateAndTime[0].split("-")
+        val time = dateAndTime[1].split(":")
+        format = dateAndTime[2]
+        val day = date1[2].toInt()
+        val month = date1[1].toInt()
+        val year = date1[0].toInt()
+        val monthName = Months.MONTHS[month-1]
+        val normalTime = if(time[0].toInt()>12){
+            time[0].toInt() - 12
+        } else {
+            time[0].toInt()
+        }
+        dateInfo = "$day $monthName ${normalTime}:${time[1]} $format"
+        if((currentMonth == month)&&(currentYear==year)&&(day==currentDay)){
+            editedDate = "Today ${normalTime}:${time[1]} $format"
+        }
+        else if ((currentMonth == month) && (abs(day-currentDay)<7)){
+            editedDate = if(abs(day-currentDay)==1){
+                "Yesterday ${normalTime}:${time[1]} $format"
+            } else{
+                "${dateAndTime[3]} ${normalTime}:${time[1]} $format"
+            }
+        }
+        else if(((currentMonth == month)&&(currentYear==year)) || (currentYear==year)){
+            editedDate = "$monthName $day"
+        }
+        else{
+            dateInfo = "$day $monthName, $year ${normalTime}:${time[1]} $format"
+            editedDate = "$monthName $day, $year"
+        }
+        date.text = editedDate
+    }
+
+    private fun searchOperation(position: Int) {
+        if(notesList[selectedItemPos].isHighlighted && query.isNotEmpty()){
+            val titleContent = notesList[selectedItemPos].title
+            val bodyContent = notesList[selectedItemPos].content
+//                println("In IF $query $titleContent $bodyContent")
+            val spannableTitle = SpannableString(titleContent)
+            val spannableContent = SpannableString(bodyContent)
+            var startContentIndex = bodyContent.indexOf(query, ignoreCase = true)
+            var startIndex = titleContent.indexOf(query, ignoreCase = true)
+            while (startIndex >= 0) {
+                val endIndex = startIndex + query.length
+
+                // Ensure indices are within the bounds of the text length
+                if (startIndex >= 0 && endIndex <= titleContent.length) {
+                    // Apply a ForegroundColorSpan to highlight the text
+                    spannableTitle.setSpan(
+                        ForegroundColorSpan(Color.argb(255,255,20,20)), // You can choose any color
+                        startIndex,
+                        endIndex,
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                    )
+                }
+                // Find the next occurrence of the query text
+                startIndex = titleContent.indexOf(query, endIndex, ignoreCase = true)
+            }
+            while (startContentIndex >= 0) {
+                val endContentIndex = startContentIndex + query.length
+
+                // Ensure indices are within the bounds of the text length
+                if (startContentIndex >= 0 && endContentIndex <= bodyContent.length) {
+                    // Apply a ForegroundColorSpan to highlight the text
+                    spannableContent.setSpan(
+                        ForegroundColorSpan(Color.argb(255,255,20,10)), // You can choose any color
+                        startContentIndex,
+                        endContentIndex,
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                    )
+                }
+                // Find the next occurrence of the query text
+                startContentIndex = bodyContent.indexOf(query, endContentIndex, ignoreCase = true)
+            }
+            title.text = spannableTitle
+            content.text = spannableContent
+//                notifyDataSetChanged()
+        }
+        else{
+            title.text = notesList[position].title
+            content.text = notesList[position].content
+//                notifyDataSetChanged()
+        }
+    }
+
     fun setNotes(notes:MutableList<Note>){
         val diffUtil = NotesDiffUtil(notesList,notes)
         val diffResults = DiffUtil.calculateDiff(diffUtil)
@@ -400,7 +407,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         setNotes(list)
          pinnedList = mutableListOf(2)
          viewModel.isPinned.value = 0
-         fragment.view?.findViewById<FloatingActionButton>(R.id.addButton)?.show()
+//         fragment.view?.findViewById<FloatingActionButton>(R.id.addButton)?.show()
 //         makeUnClickable()
     }
 
