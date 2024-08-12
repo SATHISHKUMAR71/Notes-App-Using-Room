@@ -20,7 +20,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
-class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
+class AppbarFragment(private val fab:FloatingActionButton,private var viewModel:NotesAppViewModel) : Fragment() {
     private lateinit var search:SearchView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,13 +32,13 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
 
-        println("12345 query value: ${NotesAppViewModel.query.value} ${NotesAppViewModel.query.value?.isEmpty()==false}")
+        println("12345 query value: ${viewModel.query.value} ${viewModel.query.value?.isEmpty()==false}")
         val view =  inflater.inflate(R.layout.fragment_appbar, container, false)
         search = view.findViewById(R.id.searchView)
-        if(NotesAppViewModel.query.value?.isEmpty()==false){
-            println("12345 ON QUERY CHANGED isEmpty ${NotesAppViewModel.query.value}")
-            NotesAppViewModel.query.value = NotesAppViewModel.query.value
-            search.setQuery(NotesAppViewModel.query.value?:"",true)
+        if(viewModel.query.value?.isEmpty()==false){
+            println("12345 ON QUERY CHANGED isEmpty ${viewModel.query.value}")
+            viewModel.query.value = viewModel.query.value
+            search.setQuery(viewModel.query.value?:"",true)
         }
         search.isFocusable = false
         search.isFocusableInTouchMode = false
@@ -46,7 +46,8 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
         search.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 println("ON QUERY CHANGED Submit")
-                NotesAppViewModel.query.value = query
+//                viewModel.getNotesByQuery(query?:"")
+                viewModel.query.value = query
                 println("12345 submit value: $query")
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(search.windowToken, 0)
@@ -54,7 +55,8 @@ class AppbarFragment(private val fab:FloatingActionButton) : Fragment() {
             }
             override fun onQueryTextChange(newText: String?): Boolean {
                 println("ON QUERY CHANGED Text Change")
-                NotesAppViewModel.query.value = newText
+//                viewModel.getNotesByQuery(newText?:"")
+                viewModel.query.value = newText
                 println("12345 change value: $newText")
                 return true
             }

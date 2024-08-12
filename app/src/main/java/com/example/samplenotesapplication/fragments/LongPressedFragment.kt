@@ -17,11 +17,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.samplenotesapplication.R
 import com.example.samplenotesapplication.viewmodel.NotesAppViewModel
+
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
-class LongPressedFragment : Fragment() {
+class LongPressedFragment(private var viewModel: NotesAppViewModel) : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +35,7 @@ class LongPressedFragment : Fragment() {
         // Inflate the layout for this fragment
         val view =  inflater.inflate(R.layout.fragment_long_pressed, container, false)
         val toolbar = view.findViewById<MaterialToolbar>(R.id.longPressedToolbar)
-        NotesAppViewModel.selectCount.observe(viewLifecycleOwner, Observer {
+        viewModel.selectCount.observe(viewLifecycleOwner, Observer {
             toolbar.setTitle("$it Items Selected")
             if(it==0){
                 toolbar.menu.findItem(R.id.deleteSelectedItems).apply {
@@ -58,8 +59,8 @@ class LongPressedFragment : Fragment() {
             when(it.itemId){
                 (R.id.selectAllItems)->{
                     Toast.makeText(context,"Select all Clicked",Toast.LENGTH_SHORT).show()
-                    NotesAppViewModel.selectAllItem.value = NotesAppViewModel.selectAllItem.value != true
-                    if(NotesAppViewModel.selectAllItem.value==true){
+                    viewModel.selectAllItem.value = viewModel.selectAllItem.value != true
+                    if(viewModel.selectAllItem.value==true){
                         toolbar.menu.findItem(R.id.selectAllItems).setIcon(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_deselect_24))
                     }
                     else{
@@ -68,23 +69,23 @@ class LongPressedFragment : Fragment() {
                     true
                 }
                 (R.id.deleteSelectedItems)->{
-                    if(NotesAppViewModel.selectCount.value!=0){
-                        NotesAppViewModel.deleteSelectedItems.value = true
+                    if(viewModel.selectCount.value!=0){
+                        viewModel.deleteSelectedItems.value = true
                     }
                     true
                 }
                 (R.id.pinSelectedNotes) -> {
-                    NotesAppViewModel.pinItemsClicked.value = NotesAppViewModel.pinItemsClicked.value != true
+                    viewModel.pinItemsClicked.value = viewModel.pinItemsClicked.value != true
                     onDestroyView()
                     true
                 }
                 else -> false
             }
         }
-        NotesAppViewModel.isPinned.observe(viewLifecycleOwner, Observer {
+        viewModel.isPinned.observe(viewLifecycleOwner, Observer {
 //            UNPIN
 
-            when(NotesAppViewModel.isPinned.value){
+            when(viewModel.isPinned.value){
                 0 -> {
                     toolbar.menu.findItem(R.id.pinSelectedNotes).apply {
                         isVisible = true
@@ -114,9 +115,9 @@ class LongPressedFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         println("On Destroy View")
-        NotesAppViewModel.onBackPressed.value = true
-        NotesAppViewModel.selectAllItem.value = false
-        NotesAppViewModel.deleteSelectedItems.value = false
+        viewModel.onBackPressed.value = true
+        viewModel.selectAllItem.value = false
+        viewModel.deleteSelectedItems.value = false
         parentFragmentManager.popBackStack()
     }
 

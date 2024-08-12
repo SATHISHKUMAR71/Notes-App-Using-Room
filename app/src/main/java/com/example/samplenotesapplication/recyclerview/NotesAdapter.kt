@@ -84,7 +84,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             if(notesList[selectedItemPos].isHighlighted && query.isNotEmpty()){
                 val titleContent = notesList[selectedItemPos].title
                 val bodyContent = notesList[selectedItemPos].content
-                println("In IF $query $titleContent $bodyContent")
+//                println("In IF $query $titleContent $bodyContent")
                 val spannableTitle = SpannableString(titleContent)
                 val spannableContent = SpannableString(bodyContent)
                 var startContentIndex = bodyContent.indexOf(query, ignoreCase = true)
@@ -181,7 +181,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     if(notesList[holder.adapterPosition].isSelected){
                         notesList[holder.adapterPosition].isSelected = false
                         selectCount-=1
-                        NotesAppViewModel.selectCount.value = selectCount
+                        viewModel.selectCount.value = selectCount
                         if(notesList[holder.adapterPosition].isPinned==1){
                             pinnedList.remove(1)
                         }
@@ -191,7 +191,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     }
                     else{
                         selectCount+=1
-                        NotesAppViewModel.selectCount.value = selectCount
+                        viewModel.selectCount.value = selectCount
                         notesList[holder.adapterPosition].isSelected = true
                         if(notesList[holder.adapterPosition].isPinned==1){
                             pinnedList.add(1)
@@ -200,7 +200,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                             pinnedList.add(0)
                         }
                     }
-                    NotesAppViewModel.setPinnedValues(pinnedList)
+                    viewModel.setPinnedValues(pinnedList)
                     viewModel.setSelectedNote(notesList[holder.adapterPosition])
                 }
             }
@@ -266,7 +266,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     if(notesList[selectedItemPos].isSelected){
                         notesList[selectedItemPos].isSelected = false
                         selectCount -=1
-                        NotesAppViewModel.selectCount.value = selectCount
+                        viewModel.selectCount.value = selectCount
                         if(notesList[selectedItemPos].isPinned==1){
                             pinnedList.remove(1)
                         }
@@ -276,7 +276,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     }
                     else{
                         selectCount+=1
-                        NotesAppViewModel.selectCount.value = selectCount
+                        viewModel.selectCount.value = selectCount
                         notesList[selectedItemPos].isSelected = true
                         if(notesList[selectedItemPos].isPinned==1){
                             pinnedList.add(1)
@@ -285,11 +285,11 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                             pinnedList.add(0)
                         }
                     }
-                    NotesAppViewModel.setPinnedValues(pinnedList)
+                    viewModel.setPinnedValues(pinnedList)
                     viewModel.setSelectedNote(notesList[selectedItemPos])
                     fragment.view?.findViewById<FloatingActionButton>(R.id.addButton)?.hide()
                     (context as FragmentActivity).supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainerMenu,LongPressedFragment(),"longFragmentEnabled")
+                        .replace(R.id.fragmentContainerMenu,LongPressedFragment(viewModel),"longFragmentEnabled")
                         .addToBackStack("Long pressed by the user")
                         .commit()
                 }
@@ -307,7 +307,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                         notesList[selectedItemPos].isSelected = false
 
                         selectCount -=1
-                        NotesAppViewModel.selectCount.value = selectCount
+                        viewModel.selectCount.value = selectCount
                         if(notesList[selectedItemPos].isPinned==1){
                             pinnedList.remove(1)
                         }
@@ -322,7 +322,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     else{
                         notesList[selectedItemPos].isSelected = true
                         selectCount +=1
-                        NotesAppViewModel.selectCount.value = selectCount
+                        viewModel.selectCount.value = selectCount
                         if(notesList[selectedItemPos].isPinned==1){
                             pinnedList.add(1)
                         }
@@ -330,7 +330,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                             pinnedList.add(0)
                         }
                     }
-                    NotesAppViewModel.setPinnedValues(pinnedList)
+                    viewModel.setPinnedValues(pinnedList)
                     viewModel.setSelectedNote(notesList[selectedItemPos])
                 }
                 else{
@@ -356,6 +356,10 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         val diffUtil = NotesDiffUtil(notesList,notes)
         val diffResults = DiffUtil.calculateDiff(diffUtil)
         notesList = notes
+
+        for(i in notes){
+            println("0202 Set Notes Called $query ${i.title}")
+        }
         diffResults.dispatchUpdatesTo(this)
     }
 
@@ -363,13 +367,12 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     fun setNotesQuery(notes:MutableList<Note>,query1: String){
         query = query1
         if(query1.isNotEmpty()){
-            println("In IF $query1")
-            println("In IF $query")
 ////            notifyDataSetChanged()
             val list = notes.map {
+                println("0202 set notes query: $query1 ${it.title}")
                 it.copy(isHighlighted = true)
             }.toMutableList()
-            notifyItemRangeChanged(0,list.size+1)
+            notifyItemRangeChanged(0,list.size)
             setNotes(list)
         }
         else{
@@ -379,7 +382,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                 it.copy(isHighlighted = false)
             }.toMutableList()
             setNotes(list)
-            notifyItemRangeChanged(0,list.size+1)
+            notifyItemRangeChanged(0,list.size)
         }
 //        notifyDataSetChanged()
     }
@@ -389,14 +392,14 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
          firstTimeLongPressed = 0
          isLongPressed = 0
          selectCount = 0
-         NotesAppViewModel.selectCount.value = selectCount
+         viewModel.selectCount.value = selectCount
         val list = notesList.map {
-            it.copy(isSelected = false, isCheckable = false, isHighlighted = false)
+            it.copy(isSelected = false, isCheckable = false)
         }.toMutableList()
          isCheckable = false
         setNotes(list)
          pinnedList = mutableListOf(2)
-         NotesAppViewModel.isPinned.value = 0
+         viewModel.isPinned.value = 0
          fragment.view?.findViewById<FloatingActionButton>(R.id.addButton)?.show()
 //         makeUnClickable()
     }
@@ -408,7 +411,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     fun selectAllItems() {
         pinnedList = mutableListOf(2)
         selectCount = 0
-        NotesAppViewModel.selectCount.value = selectCount
+        viewModel.selectCount.value = selectCount
         val list = notesList.map {
                 if(it.isPinned==1){
                     pinnedList.add(1)
@@ -417,8 +420,8 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                     pinnedList.add(0)
                 }
             selectCount +=1
-            NotesAppViewModel.selectCount.value = selectCount
-            NotesAppViewModel.setPinnedValues(pinnedList)
+            viewModel.selectCount.value = selectCount
+            viewModel.setPinnedValues(pinnedList)
             it.copy(isSelected = true)
         }.toMutableList()
         setNotes(list)
@@ -426,13 +429,13 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
 
     fun unSelectAllItems() {
         selectCount = 0
-        NotesAppViewModel.selectCount.value = selectCount
+        viewModel.selectCount.value = selectCount
         val list = notesList.map {
             it.copy(isSelected = false)
         }.toMutableList()
 
         pinnedList = mutableListOf(2)
-        NotesAppViewModel.setPinnedValues(pinnedList)
+        viewModel.setPinnedValues(pinnedList)
         setNotes(list)
     }
 
@@ -487,17 +490,17 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         title.text = "Delete Notes"
         message.text = "Delete $selectCount items?"
 //        builder.setTitle("Delete Notes")
-        NotesAppViewModel.selectCount.value = selectCount
+        viewModel.selectCount.value = selectCount
 //        builder.setMessage("Delete $selectCount items?")
         builder.setView(customView)
         builder.setPositiveButton(null){dialog,_->
 
-            NotesAppViewModel.deleteConfirmation.value = true
+            viewModel.deleteConfirmation.value = true
             dialog.dismiss()
         }
         builder.setNeutralButton(null){dialog,_->
 
-            NotesAppViewModel.deleteConfirmation.value = false
+            viewModel.deleteConfirmation.value = false
             dialog.dismiss()
         }
         deleteDialog = builder.create()
@@ -511,7 +514,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                 // Trigger the dialog's positive action
                 deleteDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
 
-                NotesAppViewModel.deleteConfirmation.value = true
+                viewModel.deleteConfirmation.value = true
             }
         }
         val neg = deleteDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
@@ -522,7 +525,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                 // Trigger the dialog's positive action
                 deleteDialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
 
-                NotesAppViewModel.deleteConfirmation.value = false
+                viewModel.deleteConfirmation.value = false
             }
         }
     }

@@ -21,6 +21,7 @@ import com.example.samplenotesapplication.recyclerview.NotesAdapter
 import com.example.samplenotesapplication.model.NotesDatabase
 import com.example.samplenotesapplication.repository.NoteRepository
 import com.example.samplenotesapplication.viewmodel.NotesAppViewModel
+
 import com.example.samplenotesapplication.viewmodel.NotesViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -31,6 +32,8 @@ class HomeFragment : Fragment() {
     private lateinit var fab:FloatingActionButton
     private var query = ""
     private var i = 0
+    private var count =0
+    private lateinit var notesObserver :Observer<MutableList<Note>>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -40,11 +43,12 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-
         view = inflater.inflate(R.layout.fragment_home, container, false)
         val rv = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val viewModelFactory = NotesViewModelFactory(requireActivity().application, NoteRepository(NotesDatabase.getNoteDatabase(requireContext())))
         val viewModel = ViewModelProvider(this,viewModelFactory)[NotesAppViewModel::class.java]
+        query = viewModel.query.value?:""
+
 //        Floating Action Button On Click Listener
         fab = view.findViewById(R.id.addButton)
         fab.apply {
@@ -55,7 +59,7 @@ class HomeFragment : Fragment() {
                     .commit()
             }
         }
-        appbarFragment = AppbarFragment(fab)
+        appbarFragment = AppbarFragment(fab,viewModel)
         if(parentFragmentManager.findFragmentByTag("longFragmentEnabled")?.isVisible != true){
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainerMenu,appbarFragment,"appbarFragment")
@@ -71,44 +75,40 @@ class HomeFragment : Fragment() {
         adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 //        SearchView Observer
 
+        notesObserver = Observer { notes ->
+            var c = 0
+            adapter.setNotesQuery(notes, viewModel.query.value ?: "")
+        }
 
-        NotesAppViewModel.query.observe(viewLifecycleOwner, Observer {
-            println("12345 $it")
-            query = it
-            if(query.isEmpty()){
-                viewModel.getAllNotes().observe(viewLifecycleOwner, Observer { getAll->
-                    println("Get ALl Notes Observer called")
-                    if(searchActionPerformed){
-                        adapter.setNotesQuery(getAll,"")
-                        searchActionPerformed = false
-                    }
-                    else{
-                        adapter.setNotes(getAll)
-                    }
-                })
+        viewModel.getAllNotes().observe(viewLifecycleOwner) { notes ->
+            if (!searchActionPerformed) {
+                println("321 Get All Notes Called")
+                adapter.setNotes(notes)
             }
-            else{
+        }
+
+        viewModel.query.observe(viewLifecycleOwner) { newQuery ->
+            if (query != newQuery) {
+                query?.let {
+                    viewModel.getNotesByQuery(it).removeObserver(notesObserver)
+                }
+
+                query = newQuery
+                println("321 it: $newQuery")
                 searchActionPerformed = true
-                viewModel.getNotesByQuery(query).observe(viewLifecycleOwner, Observer { note ->
-                    println("GetAll Notes Query Observer Called 1 query $query")
-                    adapter.setNotesQuery(note,it)
-                    rv.layoutManager?.scrollToPosition(0)
-                })
+
+                // Add the observer for the new query
+                viewModel.getNotesByQuery(newQuery).observe(viewLifecycleOwner, notesObserver)
+            } else {
+                // If the query is the same, ensure the observer is attached
+                viewModel.getNotesByQuery(newQuery).observe(viewLifecycleOwner, notesObserver)
+
             }
-        })
-
-//        Read Notes Observer
-
-//            viewModel.getAllNotes().observe(viewLifecycleOwner, Observer {
-//                if(!searchActionPerformed) {
-//                    println("Get All Notes Coppy calle")
-//                    adapter.setNotes(it)
-//                }
-//            })
+        }
 
 
 //        DELETE CONFIRMATION DIALOG OBSERVER
-        NotesAppViewModel.deleteConfirmation.observe(viewLifecycleOwner, Observer {
+        viewModel.deleteConfirmation.observe(viewLifecycleOwner, Observer {
             if(it){
                 println("Delete Observer Called 2")
                 adapter.deleteSelectedItem()
@@ -124,7 +124,7 @@ class HomeFragment : Fragment() {
         })
 
 //        Select All Items Observer
-        NotesAppViewModel.selectAllItem.observe(viewLifecycleOwner, Observer {
+        viewModel.selectAllItem.observe(viewLifecycleOwner, Observer {
 
             if(it){
                 println("Selected All Item Observer Called 4")
@@ -137,13 +137,13 @@ class HomeFragment : Fragment() {
         })
 
 //        On BackPressed Observer
-        NotesAppViewModel.onBackPressed.observe(viewLifecycleOwner, Observer {
+        viewModel.onBackPressed.observe(viewLifecycleOwner, Observer {
             println("Back Pressed Observer Called 5")
             adapter.onBackPressed()
         })
 
 //        Delete Selected Item Observer
-        NotesAppViewModel.deleteSelectedItems.observe(viewLifecycleOwner, Observer {
+        viewModel.deleteSelectedItems.observe(viewLifecycleOwner, Observer {
             println("Delete Selected Item Observer Called 6 $it")
             if(it){
                 adapter.deleteDialog(requireContext())
@@ -151,8 +151,8 @@ class HomeFragment : Fragment() {
         })
 
 //        Pin Items Observer
-        NotesAppViewModel.pinItemsClicked.observe(viewLifecycleOwner, Observer {
-            if(NotesAppViewModel.isPinned.value== 0){
+        viewModel.pinItemsClicked.observe(viewLifecycleOwner, Observer {
+            if(viewModel.isPinned.value== 0){
                 println("Pin Item Observer Called 7")
                 adapter.pinSelectedItems()
             }
@@ -178,13 +178,13 @@ class HomeFragment : Fragment() {
         // Clear focus and hide keyboard if necessary
         val searchView = (appbarFragment.view?.findViewById<SearchView>(R.id.searchView))
         if(parentFragmentManager.findFragmentByTag("longFragmentEnabled")?.isVisible == true){
-            println("8282 Back Pressed")
+            println("321 8282 Back Pressed")
             parentFragmentManager.popBackStack()
         }
 
 
         else if ((searchView?.hasFocus() == true)||(searchActionPerformed)) {
-            println("QUERY HAS BEEN CHANGED")
+            println("321 QUERY HAS BEEN CHANGED")
             searchView?.setQuery("",false)
             query = ""
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

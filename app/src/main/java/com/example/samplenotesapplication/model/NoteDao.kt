@@ -43,10 +43,11 @@ interface NoteDao {
     @RawQuery
     fun getAllNotesCursor(query: SupportSQLiteQuery): Cursor
 
+
     @RawQuery
     fun getAllNoteById(query: SupportSQLiteQuery): Cursor
 
-    @Query("SELECT * FROM notes WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM notes WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%' order by isPinned DESC, updatedAt DESC")
     fun getNotesByQuery(query:String):LiveData<MutableList<Note>>
 
 }

@@ -13,19 +13,19 @@ import java.util.Collections.min
 class NotesAppViewModel(private val application: Application,private val noteRepository: NoteRepository):AndroidViewModel(application) {
 
 
+    private var queryNotesLiveDataCache = mutableMapOf<String,LiveData<MutableList<Note>>>()
+    private var getAllNotesCache = mutableMapOf<String,LiveData<MutableList<Note>>>()
     var selectedNote = MutableLiveData<Note>()
-    companion object{
-        var query = MutableLiveData("")
-        var selectCount = MutableLiveData(0)
-        var deleteConfirmation = MutableLiveData(false)
-        var isPinned = MutableLiveData(0)
-        var onBackPressed = MutableLiveData(false)
-        var selectAllItem = MutableLiveData(false)
-        var pinItemsClicked = MutableLiveData(false)
-        var deleteSelectedItems = MutableLiveData(false)
-        fun setPinnedValues(list: List<Int>){
-            isPinned.value =  min(list)
-        }
+    var query = MutableLiveData("")
+    var selectCount = MutableLiveData(0)
+    var deleteConfirmation = MutableLiveData(false)
+    var isPinned = MutableLiveData(0)
+    var onBackPressed = MutableLiveData(false)
+    var selectAllItem = MutableLiveData(false)
+    var pinItemsClicked = MutableLiveData(false)
+    var deleteSelectedItems = MutableLiveData(false)
+    fun setPinnedValues(list: List<Int>){
+        isPinned.value =  min(list)
     }
 
 
@@ -48,7 +48,9 @@ class NotesAppViewModel(private val application: Application,private val noteRep
     }
 
     fun getAllNotes(): LiveData<MutableList<Note>> {
-        return noteRepository.getAllNotes()
+        return getAllNotesCache.getOrPut("1"){
+            noteRepository.getAllNotes()
+        }
     }
 
 
@@ -56,6 +58,9 @@ class NotesAppViewModel(private val application: Application,private val noteRep
         selectedNote.value = note
     }
     fun getNotesByQuery(query:String):LiveData<MutableList<Note>>{
-        return noteRepository.getNotesByQuery(query)
+//        return noteRepository.getNotesByQuery(query)
+        return queryNotesLiveDataCache.getOrPut(query){
+            noteRepository.getNotesByQuery(query)
+        }
     }
 }
