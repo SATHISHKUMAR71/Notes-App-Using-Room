@@ -58,7 +58,6 @@ class LongPressedFragment(private var viewModel: NotesAppViewModel) : Fragment()
         toolbar.setOnMenuItemClickListener {
             when(it.itemId){
                 (R.id.selectAllItems)->{
-
                     viewModel.selectAllItem.value = viewModel.selectAllItem.value != true
                     if(viewModel.selectAllItem.value==true){
                         toolbar.menu.findItem(R.id.selectAllItems).setIcon(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_deselect_24))
@@ -114,9 +113,8 @@ class LongPressedFragment(private var viewModel: NotesAppViewModel) : Fragment()
 
     override fun onDestroyView() {
         super.onDestroyView()
-        println("On Destroy View")
         viewModel.onBackPressed.value = true
-        viewModel.selectAllItem.value = false
+//        viewModel.selectAllItem.value = false
         viewModel.deleteSelectedItems.value = false
         parentFragmentManager.popBackStack()
     }

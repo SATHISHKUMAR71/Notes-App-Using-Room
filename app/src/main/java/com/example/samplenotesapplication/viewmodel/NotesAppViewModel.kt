@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.samplenotesapplication.model.Note
 import com.example.samplenotesapplication.repository.NoteRepository
@@ -16,9 +17,15 @@ class NotesAppViewModel(private val application: Application,private val noteRep
     private var queryNotesLiveDataCache = mutableMapOf<String,LiveData<MutableList<Note>>>()
     private var getAllNotesCache = mutableMapOf<String,LiveData<MutableList<Note>>>()
     var selectedNote = MutableLiveData<Note>()
-    var query = MutableLiveData("")
+    var query = ""
+    var _searchQuery = MutableLiveData("")
+    val searchQuery:MutableLiveData<String> get() = _searchQuery
     var selectCount = MutableLiveData(0)
     var deleteConfirmation = MutableLiveData(false)
+    var searchedNotesList = searchQuery.switchMap {
+        noteRepository.getNotesByQuery(it)
+    }
+
     var isPinned = MutableLiveData(0)
     var onBackPressed = MutableLiveData(false)
     var selectAllItem = MutableLiveData(false)
@@ -48,19 +55,20 @@ class NotesAppViewModel(private val application: Application,private val noteRep
     }
 
     fun getAllNotes(): LiveData<MutableList<Note>> {
-        return getAllNotesCache.getOrPut("1"){
+        val i = getAllNotesCache.getOrPut("1"){
             noteRepository.getAllNotes()
         }
+        return i
     }
-
 
     fun setSelectedNote(note:Note){
         selectedNote.value = note
     }
     fun getNotesByQuery(query:String):LiveData<MutableList<Note>>{
 //        return noteRepository.getNotesByQuery(query)
-        return queryNotesLiveDataCache.getOrPut(query){
+        val i =queryNotesLiveDataCache.getOrPut(query){
             noteRepository.getNotesByQuery(query)
         }
+        return i
     }
 }

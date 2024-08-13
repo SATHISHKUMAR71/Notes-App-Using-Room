@@ -56,5 +56,6 @@ dependencies {
     implementation(libs.androidx.room.ktx.v250)
     annotationProcessor(libs.androidx.room.compiler)
     kapt("androidx.room:room-compiler:2.6.1")
+    implementation(libs.androidx.lifecycle.livedata.core.ktx)
     implementation("androidx.recyclerview:recyclerview:1.3.0")
 }

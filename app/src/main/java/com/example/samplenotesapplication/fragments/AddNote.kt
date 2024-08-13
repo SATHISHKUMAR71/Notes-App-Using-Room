@@ -56,11 +56,9 @@ class AddNote(private var viewModel: NotesAppViewModel) : Fragment() {
             }
         }
         else{
-            println(time)
             val newDateTime = time.split(" ")
             val dateValues = newDateTime[0].split("-")
             val day = dateValues[2]
-            println(dateValues[1])
             val monthName = Months.MONTHS[dateValues[1].toInt()-1]
             val timeValues = newDateTime[1].split(":")
             val normalTime = if(timeValues[0].toInt()>12){

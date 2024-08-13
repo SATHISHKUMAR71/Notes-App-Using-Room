@@ -15,6 +15,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -30,8 +31,10 @@ import com.example.samplenotesapplication.fragments.LongPressedFragment
 import com.example.samplenotesapplication.model.Note
 import com.example.samplenotesapplication.viewmodel.NotesAppViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.PI
 import kotlin.math.abs
 
 
@@ -39,7 +42,9 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
 
     private var pinnedList:MutableList<Int> = mutableListOf(2)
     private var notesList: MutableList<Note> = mutableListOf()
+    private var undoList:MutableList<Note> = mutableListOf()
     private var isHighlight = false
+    private lateinit var view:View
     private var query = ""
     var dateInfo = ""
     private var selectedItemPos = 0
@@ -77,6 +82,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     }
 
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
+        view = holder.itemView
         holder.itemView.apply {
             selectedItemPos = holder.bindingAdapterPosition
             date = findViewById(R.id.dateNote)
@@ -255,7 +261,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
                 else{
                     val addNoteFragment = AddNote(viewModel)
                     addNoteFragment.arguments = Bundle().apply {
-
                         putInt("id",notesList[selectedItemPos].id)
                         putString("title",notesList[selectedItemPos].title)
                         putString("date",dateInfo)
@@ -311,7 +316,7 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         if(notesList[selectedItemPos].isHighlighted && query.isNotEmpty()){
             val titleContent = notesList[selectedItemPos].title
             val bodyContent = notesList[selectedItemPos].content
-//                println("In IF $query $titleContent $bodyContent")
+//
             val spannableTitle = SpannableString(titleContent)
             val spannableContent = SpannableString(bodyContent)
             var startContentIndex = bodyContent.indexOf(query, ignoreCase = true)
@@ -360,13 +365,10 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     }
 
     fun setNotes(notes:MutableList<Note>){
+        var j=0
         val diffUtil = NotesDiffUtil(notesList,notes)
         val diffResults = DiffUtil.calculateDiff(diffUtil)
         notesList = notes
-
-        for(i in notes){
-            println("0202 Set Notes Called $query ${i.title}")
-        }
         diffResults.dispatchUpdatesTo(this)
     }
 
@@ -374,28 +376,24 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
     fun setNotesQuery(notes:MutableList<Note>,query1: String){
         query = query1
         if(query1.isNotEmpty()){
-////            notifyDataSetChanged()
             val list = notes.map {
-                println("0202 set notes query: $query1 ${it.title}")
                 it.copy(isHighlighted = true)
             }.toMutableList()
-            notifyItemRangeChanged(0,list.size)
+            notifyItemRangeChanged(0,list.size+6)
             setNotes(list)
         }
         else{
             query = ""
-            println("In ELSE $query")
             val list = notes.map {
                 it.copy(isHighlighted = false)
             }.toMutableList()
+            notifyItemRangeChanged(0,list.size+6)
             setNotes(list)
-            notifyItemRangeChanged(0,list.size)
         }
 //        notifyDataSetChanged()
     }
 
      fun onBackPressed() {
-         println("ON BACK PRESSED")
          firstTimeLongPressed = 0
          isLongPressed = 0
          selectCount = 0
@@ -407,6 +405,9 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         setNotes(list)
          pinnedList = mutableListOf(2)
          viewModel.isPinned.value = 0
+         if(viewModel.query.isEmpty()){
+             fragment.view?.findViewById<FloatingActionButton>(R.id.addButton)?.show()
+         }
 //         fragment.view?.findViewById<FloatingActionButton>(R.id.addButton)?.show()
 //         makeUnClickable()
     }
@@ -440,7 +441,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         val list = notesList.map {
             it.copy(isSelected = false)
         }.toMutableList()
-
         pinnedList = mutableListOf(2)
         viewModel.setPinnedValues(pinnedList)
         setNotes(list)
@@ -452,7 +452,9 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
         }.toMutableList()
 
         // Handle actual deletion
+        undoList = mutableListOf()
         notesList.filter { it.isSelected }.forEach {
+            undoList.add(it)
             viewModel.deleteNote(it)
         }
         pinnedList = mutableListOf(2)
@@ -467,7 +469,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             viewModel.updateNote(updateNote)
         }
         isLongPressed = 0
-
     }
 
     fun unpinSelectedItems() {
@@ -520,8 +521,17 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             customView.findViewById<Button>(R.id.positiveBtn).setOnClickListener {
                 // Trigger the dialog's positive action
                 deleteDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
-
                 viewModel.deleteConfirmation.value = true
+                Snackbar.make(view,"Message Deleted",Snackbar.LENGTH_LONG)
+                    .setAction("UNDO"){
+                        for(i in undoList){
+                            viewModel.addNote(i.copy(isHighlighted = false, isCheckable = false, isSelected = false))
+                        }
+                        Toast.makeText(context,"Notes Recovered Successfully",Toast.LENGTH_LONG).show()
+                        selectCount = 0
+                        viewModel.selectAllItem.value =false
+                    }
+                    .show()
             }
         }
         val neg = deleteDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
@@ -531,7 +541,6 @@ class NotesAdapter(private val viewModel: NotesAppViewModel,private val fragment
             customView.findViewById<Button>(R.id.negativeBtn).setOnClickListener {
                 // Trigger the dialog's positive action
                 deleteDialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
-
                 viewModel.deleteConfirmation.value = false
             }
         }
